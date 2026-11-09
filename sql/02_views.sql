@@ -4,7 +4,9 @@
 -- PowerShell:
 -- Get-Content sql/02_views.sql | docker exec -i team11-mariadb mariadb -u team11 -pchange_me team11
 
--- The schools we are studying: Texas public four-year universities
+-- The schools we are studying: Texas public four-year universities.
+-- carnegie >= 15 keeps doctoral and master's universities and drops
+-- community colleges that award a few bachelor's degrees (codes 1-14).
 CREATE OR REPLACE VIEW tx_public_4yr AS
 SELECT i.unitid, i.instnm, i.carnegie,
        s.pct_pell, s.npt41_pub, s.pell_debt_mdn,
@@ -14,6 +16,7 @@ INNER JOIN scorecard_outcomes s ON i.unitid = s.unitid
 WHERE i.stabbr = 'TX'
   AND i.control = 1
   AND i.iclevel = 1
+  AND i.carnegie >= 15
   AND s.npt41_pub IS NOT NULL
   AND s.md_earn_wne_p10 IS NOT NULL;
 
