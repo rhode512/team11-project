@@ -17,8 +17,15 @@ NEEDED = {
     "data/CIPCode2020.csv": ["CIPCode", "CIPTitle"],
 }
 
+
+def clean_name(name):
+    """Remove the hidden start-of-file marker (BOM) and stray spaces."""
+    return name.replace("\ufeff", "").replace("ï»¿", "").strip()
+
+
 for path, cols in NEEDED.items():
-    header = list(pd.read_csv(path, nrows=0, encoding="latin-1").columns)
+    header = [clean_name(c) for c in
+              pd.read_csv(path, nrows=0, encoding="latin-1").columns]
     missing = [c for c in cols if c not in header]
     status = "OK" if not missing else f"MISSING {missing}"
     print(f"{path}: {status}")

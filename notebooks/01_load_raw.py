@@ -30,8 +30,21 @@ RAW_FILES = [
     ("data/CIPCode2020.csv", "raw_cip", ["CIPCode", "CIPTitle"]),
 ]
 
+
+def clean_name(name):
+    """Remove the hidden start-of-file marker (BOM) and stray spaces."""
+    return name.replace("\ufeff", "").replace("ï»¿", "").strip()
+
+
 for path, table, cols in RAW_FILES:
-    df = pd.read_csv(path, usecols=cols, dtype=str, encoding="latin-1")
+    df = pd.read_csv(path, usecols=lambda c: clean_name(c) in cols,
+                     dtype=str, encoding="latin-1")
+    df.columns = [clean_name(c) for c in df.columns]
+
+    missing = [c for c in cols if c not in df.columns]
+    if missing:
+        raise ValueError(f"{path} is missing columns: {missing}")
+
     df.to_sql(table, engine, if_exists="replace", index=False,
               chunksize=10000)
     print(f"{table}: {len(df):,} rows x {len(df.columns)} columns")
